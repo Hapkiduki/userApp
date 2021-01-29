@@ -1,8 +1,16 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+
+import 'package:userapp/src/models/response.dart';
+import 'package:userapp/src/models/user.dart';
+
+import 'package:userapp/src/services/home_service.dart';
+
 import 'package:userapp/src/utils/colors.dart';
 import 'package:userapp/src/utils/dimensions.dart';
 import 'package:userapp/src/utils/styles.dart';
+
 import 'package:userapp/src/widgets/custom_navigation_bar.dart';
 
 class HomePage extends StatelessWidget {
@@ -24,6 +32,10 @@ class HomePage extends StatelessWidget {
       text: 'User',
     ),
   ];
+
+  Future<Response> _loadData(GraphQLClient client) async {
+    return await HomeService().loadUsers(client);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,15 +61,41 @@ class HomePage extends StatelessWidget {
                       style: Styles.textsubtitle(context),
                     ),
                     Expanded(
-                      child: ListView.builder(
-                        padding: Dimensions.top(context, .05),
-                        scrollDirection: Axis.vertical,
-                        itemCount: 10,
-                        physics: BouncingScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          return _item(context);
-                        },
-                      ),
+                      child: GraphQLConsumer(builder: (client) {
+                        return FutureBuilder<Response>(
+                            future: _loadData(client),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    backgroundColor: CustomColors.blue,
+                                    strokeWidth: 10,
+                                  ),
+                                );
+                              }
+
+                              if (!snapshot.data.success) {
+                                return Center(
+                                  child: Text(
+                                    snapshot.data.message,
+                                    style: Styles.textField(context),
+                                  ),
+                                );
+                              }
+
+                              List<User> users = snapshot.data.body;
+
+                              return ListView.builder(
+                                padding: Dimensions.top(context, .05),
+                                scrollDirection: Axis.vertical,
+                                itemCount: users.length,
+                                physics: BouncingScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  return _item(context, users[index]);
+                                },
+                              );
+                            });
+                      }),
                     ),
                   ],
                 ),
@@ -69,7 +107,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Container _item(BuildContext context) {
+  Container _item(BuildContext context, User user) {
     return Container(
       margin: Dimensions.vertical(context, .02),
       decoration: BoxDecoration(
@@ -82,7 +120,7 @@ class HomePage extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             child: Image(
               image: CachedNetworkImageProvider(
-                'https://public-v2links.adobecc.com/a358a5dc-03de-4d2e-40e1-be9ebed4f525/component?params=component_id%3A181c4926-e347-44f6-8e9c-3a4cd246e447&params=version%3A0&token=1611793276_da39a3ee_2e421c61153bd1fc82d9e9c3f075eaf97de3ce46&api_key=CometServer1',
+                user.albums.first.photos.first.thumbnailUrl,
               ),
               height: Dimensions.width(context) * .2,
               width: Dimensions.width(context) * .2,
@@ -97,11 +135,11 @@ class HomePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'JORGE ROBLES',
+                  user.name,
                   style: Styles.itemtitle(context),
                 ),
                 Text(
-                  'Gatitotraviso04',
+                  user.email,
                   style: Styles.itemSubtitle(context),
                 ),
               ],

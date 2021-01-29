@@ -14,9 +14,10 @@ class Album {
   factory Album.fromJson(Map<String, dynamic> json) => Album(
         id: json['id'] == null ? null : json['id'],
         title: json['title'] == null ? null : json['title'],
-        photos: json['photos'] == null
+        photos: json['photos']['data'] == null
             ? null
-            : List<Photo>.from(json['photos'].map((x) => Photo.fromJson(x))),
+            : List<Photo>.from(
+                json['photos']['data'].map((x) => Photo.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {

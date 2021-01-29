@@ -15,7 +15,8 @@ class Photo {
         id: json['id'] == null ? null : json['id'],
         title: json['title'] == null ? null : json['title'],
         url: json['url'] == null ? null : json['url'],
-        thumbnailUrl: json['thubnailUrl'] == null ? null : json['thumbnailUrl'],
+        thumbnailUrl:
+            json['thumbnailUrl'] == null ? null : json['thumbnailUrl'],
       );
 
   Map<String, dynamic> toJson() => {

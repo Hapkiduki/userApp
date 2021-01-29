@@ -25,7 +25,8 @@ class User {
         phone: json['phone'] == null ? null : json['phone'],
         albums: json['albums'] == null
             ? null
-            : List<Album>.from(json['albums'].map((x) => Album.fromJson(x))),
+            : List<Album>.from(
+                json['albums']['data'].map((x) => Album.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
